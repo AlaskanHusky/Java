@@ -8,48 +8,55 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 public class TweetsParser {
-	Double coordX;
-	Double coordY;
-	Date date;
-	String text;
+	private Double coordX;
+	private Double coordY;
+	private Date date;
+	private String text;
+
 	public void TweetsReader(String s) {
-		int i = 0;
 		StringBuffer str = new StringBuffer();
-		char[] tweet = s.toCharArray();
-		while (tweet[i] != ']') {
-			i++;
-			if (tweet[i + 1] == ']') {
-				coordY = Double.parseDouble(str.toString());
-				str.delete(0, str.length());
-			}
-			if (tweet[i] == ',') {
-				coordX = Double.parseDouble(str.toString());
-				i++;
-				str.delete(0, str.length());
-			}
-			str.append(tweet[i]);
+		Pattern regExpression;
+		String regex;
+		Matcher regMatcher;
+		regex = "\\d{2}\\.\\d+,";
+		regExpression = Pattern.compile(regex);
+		regMatcher = regExpression.matcher(s);
+		while (regMatcher.find()) {
+			str.append(s.substring(regMatcher.start(), regMatcher.end() - 1));
+			coordX = Double.parseDouble(str.toString());
 		}
 		str.delete(0, str.length());
-		Pattern dateExpression = Pattern.compile("(\\d{4}(\\-\\d{2}){2}) (\\d{2}(:\\d{2}){2})");
-        Matcher dateMatcher = dateExpression.matcher(s);
-        while (dateMatcher.find()) {
-        	str.append(dateMatcher.group());
-        }
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:MM:SS");
-        try {
+		regex = "\\-\\d{2,3}\\.\\d+";
+		regExpression = Pattern.compile(regex);
+		regMatcher = regExpression.matcher(s);
+		while (regMatcher.find()) {
+			str.append(s.substring(regMatcher.start(), regMatcher.end()));
+			coordY = Double.parseDouble(str.toString());
+		}
+		str.delete(0, str.length());
+		regex = "(\\d{4}(\\-\\d{2}){2}) (\\d{2}(:\\d{2}){2})";
+		regExpression = Pattern.compile(regex);
+		regMatcher = regExpression.matcher(s);
+		while (regMatcher.find()) {
+			str.append(s.substring(regMatcher.start(), regMatcher.end()));
+		}
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+		try {
 			date = dateFormat.parse(str.toString());
 		} catch (ParseException e) {
 			e.getMessage();
 		}
 		str.delete(0, str.length());
-		i += 27;
-		for (; i < tweet.length; i++) {
-			str.append(tweet[i]);
-			i++;
+		regex = "[a-zA-Z#@].*";
+		regExpression = Pattern.compile(regex);
+		regMatcher = regExpression.matcher(s);
+		while (regMatcher.find()) {
+			str.append(s.substring(regMatcher.start(), regMatcher.end()));
 		}
 		text = str.toString();
 		str.delete(0, str.length());
 	}
+
 	public void ShowTweet() {
 		System.out.println("(" + coordX.toString() + ", " + coordY.toString() + ")");
 		System.out.println("Date: " + date.toString());
